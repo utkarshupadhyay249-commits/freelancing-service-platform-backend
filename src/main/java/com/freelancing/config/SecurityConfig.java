@@ -1,12 +1,11 @@
 package com.freelancing.config;
 
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -20,6 +19,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.freelancing.filter.JwtAuthFilter;
 
@@ -32,7 +34,6 @@ public class SecurityConfig {
 	private JwtAuthFilter authFilter;
 
 	@Bean
-	// authentication
 	public UserDetailsService userDetailsService() {
 		return new CustomUserDetailsService();
 	}
@@ -40,59 +41,53 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-		http.csrf(csrf -> csrf.disable()).cors(cors -> cors.configurationSource(corsConfigurationSource()))
+		http.csrf(csrf -> csrf.disable())
+				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/user/login", "/api/user/register").permitAll()
-
-//						// this APIs are only accessible by ADMIN
-//						.requestMatchers("/api/user/admin/register", "/api/user/delete/seller", "/api/order/fetch/all",
-//								"/api/category/update", "/api/category/add", "/api/category/delete",
-//								"/api/user/fetch/role-wise", "/api/user/update/status")
-//						.hasAuthority(UserRole.ROLE_ADMIN.value())
-//
-//						// this APIs are only accessible by SELLER
-//						.requestMatchers("/api/user/fetch/seller/delivery-person", "/api/user/delete/seller/delivery-person", "/api/product/update/image",
-//								"/api/product/update/detail", "/api/product/add", "/api/product/delete",
-//								"/api/order/assign/delivery-person", "/api/order/fetch/seller-wise",
-//								"/api/product/review/seller")
-//						.hasAuthority(UserRole.ROLE_CUSTOMER.value())
-//
-//						// this APIs are only accessible by SELLER
-//						.requestMatchers("/api/order/add", "/api/order/fetch/user-wise", "/api/cart/update",
-//								"/api/cart/add", "/api/cart/fetch", "/api/cart/delete", "/api/product/review/add")
-//						.hasAuthority(UserRole.ROLE_CUSTOMER.value())
-//
-//						// this APIs are only accessible by ADMIN & SELLER
-//						.requestMatchers("/api/user/fetch/role-wise", "/api/user/update/status")
-//						.hasAnyAuthority(UserRole.ROLE_ADMIN.value())
-
+				.authorizeHttpRequests(auth -> auth
+						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+						.requestMatchers("/api/user/login", "/api/user/register").permitAll()
 						.anyRequest().permitAll())
 
-				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+				.sessionManagement(session -> session
+						.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
 		http.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
-
 	}
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource() {
+
 		CorsConfiguration configuration = new CorsConfiguration();
 
-	configuration.setAllowedOrigins(Arrays.asList(
-			"https://freelancing-service-platform-fronte-alpha.vercel.app"));
+		configuration.setAllowedOrigins(Arrays.asList(
+				"https://freelancing-service-platform-fronte-alpha.vercel.app"));
 
-	configuration.setAllowedMethods(Arrays.asList(
-			"GET", "POST", "PUT", "DELETE", "OPTIONS"));
+		configuration.setAllowedMethods(Arrays.asList(
+				"GET",
+				"POST",
+				"PUT",
+				"DELETE",
+				"OPTIONS"));
 
-	configuration.setAllowedHeaders(Arrays.asList("*"));
-	configuration.setAllowCredentials(true);
+		configuration.setAllowedHeaders(Arrays.asList(
+				"Origin",
+				"Content-Type",
+				"Accept",
+				"Authorization",
+				"X-Requested-With"));
 
-	UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-	source.registerCorsConfiguration("/**", configuration);
+		configuration.setAllowCredentials(true);
 
-	return source;
-}
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+
+		source.registerCorsConfiguration("/**", configuration);
+
+		return source;
+	}
+
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
@@ -110,5 +105,4 @@ public class SecurityConfig {
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
 		return config.getAuthenticationManager();
 	}
-
 }
