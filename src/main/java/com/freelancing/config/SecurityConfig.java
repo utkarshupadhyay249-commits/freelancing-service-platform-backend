@@ -1,5 +1,9 @@
 package com.freelancing.config;
 
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,7 +40,7 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-		http.csrf(csrf -> csrf.disable()).cors(cors -> cors.disable())
+		http.csrf(csrf -> csrf.disable()).cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
 				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/user/login", "/api/user/register").permitAll()
 
@@ -71,7 +75,24 @@ public class SecurityConfig {
 		return http.build();
 
 	}
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+		CorsConfiguration configuration = new CorsConfiguration();
 
+	configuration.setAllowedOrigins(Arrays.asList(
+			"https://freelancing-service-platform-fronte-alpha.vercel.app"));
+
+	configuration.setAllowedMethods(Arrays.asList(
+			"GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+	configuration.setAllowedHeaders(Arrays.asList("*"));
+	configuration.setAllowCredentials(true);
+
+	UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+	source.registerCorsConfiguration("/**", configuration);
+
+	return source;
+}
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
