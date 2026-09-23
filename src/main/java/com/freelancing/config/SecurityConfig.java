@@ -5,6 +5,8 @@ import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -22,6 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import com.freelancing.filter.JwtAuthFilter;
 
@@ -42,7 +45,7 @@ public class SecurityConfig {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
 		http.csrf(csrf -> csrf.disable())
-				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+				.cors(cors -> cors.disable())
 
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -58,11 +61,13 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	public CorsConfigurationSource corsConfigurationSource() {
+	@Order(Ordered.HIGHEST_PRECEDENCE)
+	public CorsFilter corsFilter() {
 
 		CorsConfiguration configuration = new CorsConfiguration();
 
 		configuration.setAllowedOrigins(Arrays.asList(
+				"http://localhost:3000",
 				"https://freelancing-service-platform-fronte-alpha.vercel.app"));
 
 		configuration.setAllowedMethods(Arrays.asList(
@@ -72,12 +77,7 @@ public class SecurityConfig {
 				"DELETE",
 				"OPTIONS"));
 
-		configuration.setAllowedHeaders(Arrays.asList(
-				"Origin",
-				"Content-Type",
-				"Accept",
-				"Authorization",
-				"X-Requested-With"));
+		configuration.setAllowedHeaders(Arrays.asList("*"));
 
 		configuration.setAllowCredentials(true);
 
@@ -85,7 +85,7 @@ public class SecurityConfig {
 
 		source.registerCorsConfiguration("/**", configuration);
 
-		return source;
+		return new CorsFilter(source);
 	}
 
 	@Bean
