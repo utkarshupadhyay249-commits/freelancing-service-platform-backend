@@ -29,7 +29,10 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("api/service")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {
+		"http://localhost:3000",
+		"https://freelancing-service-platform-fronte-alpha.vercel.app"
+})
 public class ServiceController {
 
 	@Autowired
