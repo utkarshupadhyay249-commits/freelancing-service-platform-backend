@@ -26,20 +26,29 @@ public class StorageServiceImpl implements StorageService {
 	}
 
 	@Override
-	public String store(MultipartFile file) {
+public String store(MultipartFile file) {
 
-		String ext = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
+	String ext = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));
 
-		String fileName = UUID.randomUUID().toString().replaceAll("-", "") + ext;
-		File filePath = new File(BASEPATH, fileName);
-		try (FileOutputStream out = new FileOutputStream(filePath)) {
-			FileCopyUtils.copy(file.getInputStream(), out);
-			return fileName;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
+	String fileName = UUID.randomUUID().toString().replaceAll("-", "") + ext;
+	
+	File dirPath = new File(BASEPATH);
+
+	if (!dirPath.exists()) {
+		dirPath.mkdirs();
 	}
+
+	File filePath = new File(dirPath, fileName);
+
+	try (FileOutputStream out = new FileOutputStream(filePath)) {
+		FileCopyUtils.copy(file.getInputStream(), out);
+		return fileName;
+	} catch (Exception e) {
+		e.printStackTrace();
+	}
+
+	return null;
+}
 
 	@Override
 	public Resource load(String fileName) {
